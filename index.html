@@ -1,61 +1,438 @@
+
+
+e0f9f43a-9fdb-4085-bb31-e85957378fbb.png
+部署workers iptv的时候出现错误
+
+你这个不是代码错误，而是 Cloudflare 创建 Worker 时返回了 HTTP 400。
+一般有几种原因：
+
+项目名称冲突
+
+GitHub 仓库连接异常
+
+Cloudflare Workers 服务临时故障
+
+账号权限或配额问题
+
+仓库里缺少 Workers 必要文件
+
+你截图里最像的是：
+
+仓库 greenpark007/iptv
+
+项目名 iptv
+
+这里可能名字太简单，已经被占用了，或者 Pages/Workers 同名冲突。
+
+你现在这样操作：
+
+方法1（最容易成功）
+把项目名称改掉：
+
+例如：
+
+iptv-worker
+
+greenpark-iptv
+
+iptv2026
+
+myiptv-worker
+
+不要只写 iptv
+
+然后重新点：
+
+部署
+
+方法2（不用 GitHub，直接创建）
+Cloudflare 最近 GitHub 导入经常抽风。
+
+建议：
+
+进入：
+Workers 和 Pages → Workers → 创建
+
+选择：
+
+Hello World
+
+创建成功以后：
+
+编辑代码
+
+把我之前给你的 IPTV Workers 代码全部替换
+
+保存部署
+
+这种方式成功率最高。
+
+方法3（检查 GitHub 仓库）
+你的 GitHub 仓库里最好有：
+
+worker.js
+或者
+
+index.js
+
+如果仓库只有 html 文件，有时 Workers 会报错。
+
+Workers 和 Pages 不一样：
+
+Pages 适合 HTML 网站
+
+Workers 适合 JS 代码
+
+你那个 IPTV 项目其实更适合：
+
+Pages（html播放器）
+或者
+
+Workers（代理+接口）
+
+不要混着创建。
+
+我建议你现在：
+如果是播放器网页：
+用 Pages
+
+上传：
+
+index.html
+
+m3u文件
+
+如果是直播代理：
+用 Workers
+
+上传：
+
+worker.js
+
+你现在这个 IPTV 项目，其实用 Pages 更稳定。
+Cloudflare 最近 Workers 创建经常 400。
+
+
+8e067376-4549-4c93-87b6-d20eaa4cf216.png
+运行以后网页里不出来频道列表
+
+你这个 GitHub 仓库结构其实没问题：
+
+index.html
+
+tv.m3u
+
+都已经上传成功了。
+
+现在网页打开以后“没有频道列表”，一般是下面几个原因：
+
+最常见原因
+1. index.html 里读取 m3u 路径写错
+你的 html 里可能写的是：
+
+fetch('playlist.m3u')
+但你真正上传的是：
+
+tv.m3u
+所以网页读取失败。
+
+正确写法
+打开 GitHub 里的：
+
+index.html
+
+找到：
+
+fetch(
+改成：
+
+fetch('tv.m3u')
+然后：
+
+Commit changes
+
+第二种可能
+GitHub Pages 还没刷新完成
+你右侧看到：
+
+github-pages
+1 minute ago
+说明刚部署。
+
+GitHub Pages 有时候：
+
+要等 2~10 分钟
+
+才能正常读取文件。
+
+第三种可能（最常见）
+你的 HTML 解析 m3u 代码有问题
+很多 IPTV HTML 示例：
+
+只支持：
+
+#EXTINF:-1,CCTV1
+http://xxxx.m3u8
+如果你的 m3u 是：
+
+#EXTM3U
+#genre#
+或者复杂格式，
+
+页面不会显示。
+
+你现在这样检查
+直接访问：
+
+https://greenpark007.github.io/iptv/tv.m3u
+如果能看到 m3u 内容：
+
+说明文件正常。
+
+如果打不开：
+
+说明 GitHub Pages 没部署好。
+
+我建议你现在：
+先测试：
+
+网址1：
+https://greenpark007.github.io/iptv/
+网址2：
+https://greenpark007.github.io/iptv/tv.m3u
+看看第二个能不能打开。
+
+如果第二个能打开但网页没频道
+那就是：
+
+index.html 代码有问题。
+
+你可以：
+
+把 index.html 内容发给我，
+
+我帮你改成：
+
+自动读取 m3u
+
+自动显示频道
+
+点击直接播放
+
+支持手机电视
+
+的完整版。
+
+
+3f170528-8e1e-4508-86f1-430432a765e5.png
+还是不出来频道列表
+
+我看到问题了。
+你这个 index.html 里的 JavaScript 数组格式写错了，所以网页脚本直接崩溃，频道列表当然不会显示。
+
+你这里：
+
+url:"http://www.liangcl.top:8686/udp/233.50.201.1:5140
+"
+URL 后面多了一个换行和引号位置错误。
+
+而且：
+
+url:"..."
+"
+这种格式在 JavaScript 里是非法的。
+
+正确写法应该是
+你把所有频道改成这种格式：
+
+<script>
+
+const channels = [
+
+{
+  name:"CCTV1",
+  url:"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+},
+
+{
+  name:"韩国 KBS",
+  url:"https://test-streams.mux.dev/test_001/stream.m3u8"
+},
+
+{
+  name:"韩国 MBC",
+  url:"https://test-streams.mux.dev/dai-discontinuity-deltatre/manifest.m3u8"
+},
+
+{
+  name:"韩国 SBS",
+  url:"https://test-streams.mux.dev/bbb-abr/bbb.m3u8"
+}
+
+];
+
+</script>
+你现在的问题有两个
+1. JavaScript 格式错误
+这是最主要原因。
+
+2. UDP直播源浏览器根本不能播放
+你这里：
+
+udp/233.50.201.1
+这种：
+
+UDP组播
+
+机顶盒源
+
+浏览器不能直接播放。
+
+Cloudflare Pages 也不能播放。
+
+必须转换成：
+
+.m3u8
+或者：
+
+.flv
+直播流。
+
+现在最简单测试方法
+先只保留这个：
+
+const channels = [
+
+{
+  name:"测试频道",
+  url:"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+}
+
+];
+然后：
+
+保存
+
+Commit
+
+等2分钟
+
+刷新网页。
+
+如果这时候出现频道列表
+说明：
+
+HTML没问题了
+
+你原来的UDP源不能播
+
+你现在需要的是：
+方案A（推荐）
+我帮你生成：
+
+完整 IPTV 网页
+
+自动频道列表
+
+点击播放
+
+支持 m3u8
+
+支持手机/电视
+
+Cloudflare Pages 可直接部署
+
+你直接覆盖 index.html 就行。
+
+方案B
+继续自己改。
+
+但你必须：
+
+删除所有 udp://
+
+改成 m3u8 地址
+
+修复 JS 格式
+
+否则网页永远空白。
+
+
+你帮我生成方案a吧
+
+把你现在 GitHub 里的 index.html 全部删除，替换成下面这个完整版本。
+
+这个版本支持：
+
+自动频道列表
+
+点击播放
+
+HLS(m3u8)直播
+
+手机/电脑/电视浏览器
+
+Cloudflare Pages
+
+深色界面
+
+全屏播放
+
 <!DOCTYPE html>
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Park IPTV Live</title>
-
-<link rel="preconnect" href="https://cdn.jsdelivr.net" />
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <style>
 body{
     margin:0;
-    background:#0f1117;
+    background:#111;
     color:white;
-    font-family:Arial,sans-serif;
+    font-family:Arial;
 }
 
 header{
-    background:#151922;
+    background:#1e1e1e;
     padding:15px;
     text-align:center;
-    font-size:28px;
+    font-size:24px;
     font-weight:bold;
-    border-bottom:1px solid #333;
+    border-bottom:2px solid #333;
 }
 
 .container{
     display:flex;
-    height:calc(100vh - 70px);
+    height:calc(100vh - 60px);
 }
 
 .sidebar{
-    width:320px;
-    background:#161b26;
+    width:280px;
+    background:#181818;
     overflow-y:auto;
     border-right:1px solid #333;
 }
 
 .channel{
-    padding:14px;
+    padding:15px;
+    border-bottom:1px solid #333;
     cursor:pointer;
-    border-bottom:1px solid #252b38;
     transition:0.2s;
 }
 
 .channel:hover{
-    background:#283041;
+    background:#333;
 }
 
-.player-area{
+.player{
     flex:1;
     display:flex;
-    flex-direction:column;
     justify-content:center;
     align-items:center;
-    background:#000;
+    background:black;
 }
 
 video{
@@ -66,24 +443,30 @@ video{
 
 .status{
     position:absolute;
-    top:80px;
+    top:70px;
     right:20px;
-    background:#111;
-    padding:10px 15px;
+    background:#222;
+    padding:8px 15px;
     border-radius:10px;
-    opacity:0.8;
+    color:#0f0;
     font-size:14px;
 }
 
-@media(max-width:900px){
-    .container{
-        flex-direction:column;
-    }
+@media(max-width:768px){
 
-    .sidebar{
-        width:100%;
-        height:260px;
-    }
+.container{
+    flex-direction:column;
+}
+
+.sidebar{
+    width:100%;
+    height:220px;
+}
+
+.player{
+    height:calc(100vh - 280px);
+}
+
 }
 </style>
 </head>
@@ -94,19 +477,19 @@ video{
 📺 Park IPTV Live
 </header>
 
+<div class="status">
+Cloudflare Pages IPTV
+</div>
+
 <div class="container">
 
 <div class="sidebar" id="channelList">
 </div>
 
-<div class="player-area">
-    <video id="video" controls autoplay></video>
+<div class="player">
+<video id="video" controls autoplay></video>
 </div>
 
-</div>
-
-<div class="status">
-Cloudflare Pages IPTV
 </div>
 
 <script>
@@ -114,15 +497,13 @@ Cloudflare Pages IPTV
 const channels = [
 
 {
-name:"CCTV1",
-url:"http://www.liangcl.top:8686/udp/233.50.201.1:5140
-"
+name:"测试频道 1",
+url:"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
 },
 
 {
 name:"韩国 KBS",
-url:"http://www.liangcl.top:8686/udp/233.50.201.1:5140
-"
+url:"https://test-streams.mux.dev/test_001/stream.m3u8"
 },
 
 {
@@ -133,6 +514,11 @@ url:"https://test-streams.mux.dev/dai-discontinuity-deltatre/manifest.m3u8"
 {
 name:"韩国 SBS",
 url:"https://test-streams.mux.dev/bbb-abr/bbb.m3u8"
+},
+
+{
+name:"Big Buck Bunny",
+url:"https://test-streams.mux.dev/bbb-abr/bbb.m3u8"
 }
 
 ];
@@ -140,48 +526,87 @@ url:"https://test-streams.mux.dev/bbb-abr/bbb.m3u8"
 const video = document.getElementById('video');
 const list = document.getElementById('channelList');
 
-function playStream(url){
+function playChannel(url){
 
-    if(Hls.isSupported()){
+if(Hls.isSupported()){
 
-        const hls = new Hls();
-
-        hls.loadSource(url);
-
-        hls.attachMedia(video);
-
-        hls.on(Hls.Events.MANIFEST_PARSED,function(){
-            video.play();
-        });
-
-    }else if(video.canPlayType('application/vnd.apple.mpegurl')){
-
-        video.src = url;
-
-        video.addEventListener('loadedmetadata',function(){
-            video.play();
-        });
-
-    }
+if(window.hls){
+window.hls.destroy();
 }
 
-channels.forEach(ch => {
+const hls = new Hls();
 
-    const div = document.createElement('div');
+window.hls = hls;
 
-    div.className = 'channel';
+hls.loadSource(url);
 
-    div.innerText = ch.name;
+hls.attachMedia(video);
 
-    div.onclick = () => playStream(ch.url);
+hls.on(Hls.Events.MANIFEST_PARSED,function(){
+video.play();
+});
 
-    list.appendChild(div);
+}else if(video.canPlayType('application/vnd.apple.mpegurl')){
+
+video.src = url;
+
+video.play();
+
+}
+
+}
+
+channels.forEach(channel=>{
+
+const div = document.createElement('div');
+
+div.className = 'channel';
+
+div.innerHTML = channel.name;
+
+div.onclick = ()=>{
+
+playChannel(channel.url);
+
+};
+
+list.appendChild(div);
 
 });
 
-playStream(channels[0].url);
+playChannel(channels[0].url);
 
 </script>
 
 </body>
 </html>
+然后：
+
+部署方法
+GitHub
+上传替换：
+
+index.html
+Cloudflare Pages
+继续连接：
+
+greenpark007/iptv
+Pages 设置
+Framework preset：
+
+None
+Build command：
+
+留空
+
+Output directory：
+
+/
+部署成功以后：
+
+打开：
+
+https://你的项目.pages.dev
+就会出现 IPTV 页面和频道列表。
+
+
