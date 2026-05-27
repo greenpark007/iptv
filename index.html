@@ -1,202 +1,157 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Park IPTV Live</title>
-
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-
 <style>
 body{
     margin:0;
     background:#111;
-    color:white;
-    font-family:Arial;
+    color:#fff;
+    font-family:Arial,sans-serif;
+    overflow:hidden;
 }
-
-header{
-    background:#1e1e1e;
-    padding:15px;
-    text-align:center;
-    font-size:24px;
+.header{
+    height:60px;
+    background:#1b1b1b;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:34px;
     font-weight:bold;
-    border-bottom:2px solid #333;
+    border-bottom:1px solid #333;
 }
-
 .container{
     display:flex;
     height:calc(100vh - 60px);
 }
-
 .sidebar{
-    width:280px;
-    background:#181818;
+    width:300px;
+    background:#161616;
     overflow-y:auto;
     border-right:1px solid #333;
 }
-
 .channel{
-    padding:15px;
-    border-bottom:1px solid #333;
+    padding:16px;
+    border-bottom:1px solid #2b2b2b;
     cursor:pointer;
     transition:0.2s;
+    font-size:18px;
 }
-
 .channel:hover{
-    background:#333;
+    background:#222;
 }
-
-.player{
+.player-area{
     flex:1;
+    background:#000;
     display:flex;
     justify-content:center;
     align-items:center;
-    background:black;
 }
-
 video{
     width:100%;
     height:100%;
-    background:black;
+    background:#000;
 }
-
 .status{
     position:absolute;
-    top:70px;
+    top:75px;
     right:20px;
-    background:#222;
-    padding:8px 15px;
-    border-radius:10px;
-    color:#0f0;
-    font-size:14px;
-}
-
-@media(max-width:768px){
-
-.container{
-    flex-direction:column;
-}
-
-.sidebar{
-    width:100%;
-    height:220px;
-}
-
-.player{
-    height:calc(100vh - 280px);
-}
-
+    background:#1c1c1c;
+    padding:10px 16px;
+    border-radius:20px;
+    color:#00ff66;
+    font-size:15px;
 }
 </style>
 </head>
-
 <body>
 
-<header>
+<div class="header">
 📺 Park IPTV Live
-</header>
-
-<div class="status">
-Cloudflare Pages IPTV
 </div>
+
+<div class="status">GitHub Pages IPTV</div>
 
 <div class="container">
 
-<div class="sidebar" id="channelList">
-</div>
+<div class="sidebar" id="channelList"></div>
 
-<div class="player">
+<div class="player-area">
 <video id="video" controls autoplay></video>
 </div>
 
 </div>
 
 <script>
-
 const channels = [
-
 {
-name:"测试频道 1",
+name:"凤凰资讯",
+url:"http://43.152.224.209/qctv.fengshows.cn/live/0701pin72.flv"
+},
+{
+name:"凤凰中文",
+url:"http://43.152.224.209/qctv.fengshows.cn/live/0701pcc72.flv"
+},
+{
+name:"凤凰香港",
+url:"http://43.152.224.209/qctv.fengshows.cn/live/0701phk72.flv"
+},
+{
+name:"凤凰香港备用",
+url:"https://cdn6.163189.xyz/163189/fhhk"
+},
+{
+name:"凤凰中文备用",
+url:"https://cdn6.163189.xyz/163189/fhzw"
+},
+{
+name:"凤凰资讯备用",
+url:"https://cdn6.163189.xyz/163189/fhzx"
+},
+{
+name:"Big Buck Bunny 测试",
 url:"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
-},
-
-{
-name:"韩国 KBS",
-url:"https://test-streams.mux.dev/test_001/stream.m3u8"
-},
-
-{
-name:"韩国 MBC",
-url:"https://test-streams.mux.dev/dai-discontinuity-deltatre/manifest.m3u8"
-},
-
-{
-name:"韩国 SBS",
-url:"https://test-streams.mux.dev/bbb-abr/bbb.m3u8"
-},
-
-{
-name:"Big Buck Bunny",
-url:"https://test-streams.mux.dev/bbb-abr/bbb.m3u8"
 }
-
 ];
 
-const video = document.getElementById('video');
 const list = document.getElementById('channelList');
+const video = document.getElementById('video');
+let hls;
+
+channels.forEach((ch,index)=>{
+    const div = document.createElement('div');
+    div.className='channel';
+    div.innerText=ch.name;
+    div.onclick=()=>playChannel(ch.url);
+    list.appendChild(div);
+});
 
 function playChannel(url){
 
-if(Hls.isSupported()){
+    if(hls){
+        hls.destroy();
+    }
 
-if(window.hls){
-window.hls.destroy();
+    if(Hls.isSupported() && url.includes('.m3u8')){
+        hls = new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED,function(){
+            video.play();
+        });
+    }else{
+        video.src = url;
+        video.play();
+    }
 }
-
-const hls = new Hls();
-
-window.hls = hls;
-
-hls.loadSource(url);
-
-hls.attachMedia(video);
-
-hls.on(Hls.Events.MANIFEST_PARSED,function(){
-video.play();
-});
-
-}else if(video.canPlayType('application/vnd.apple.mpegurl')){
-
-video.src = url;
-
-video.play();
-
-}
-
-}
-
-channels.forEach(channel=>{
-
-const div = document.createElement('div');
-
-div.className = 'channel';
-
-div.innerHTML = channel.name;
-
-div.onclick = ()=>{
-
-playChannel(channel.url);
-
-};
-
-list.appendChild(div);
-
-});
 
 playChannel(channels[0].url);
-
 </script>
 
 </body>
 </html>
+```
+
